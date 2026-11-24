@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import oracledb from "oracledb";
 import { getConnection } from "../config/database.js";
 
 export async function register(req, res, next) {
@@ -63,8 +64,8 @@ export async function register(req, res, next) {
         email: normalizedEmail,
         password_hash: passwordHash,
         user_id: {
-          type: (await import("oracledb")).default.NUMBER,
-          dir: (await import("oracledb")).default.BIND_OUT
+          type: oracledb.NUMBER,
+          dir: oracledb.BIND_OUT
         }
       }
     );
