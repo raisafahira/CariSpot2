@@ -1,0 +1,123 @@
+-- =========================================
+-- 02_CONSTRAINTS_INDEXES.SQL
+-- CONSTRAINT DAN INDEX
+-- =========================================
+
+-- PRIMARY KEY
+ALTER TABLE USERS
+ADD CONSTRAINT pk_users PRIMARY KEY (user_id);
+
+ALTER TABLE CATEGORIES
+ADD CONSTRAINT pk_categories PRIMARY KEY (category_id);
+
+ALTER TABLE PLACES
+ADD CONSTRAINT pk_places PRIMARY KEY (place_id);
+
+ALTER TABLE CHECKINS
+ADD CONSTRAINT pk_checkins PRIMARY KEY (checkin_id);
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT pk_condition_reports PRIMARY KEY (report_id);
+
+ALTER TABLE POINT_LOG
+ADD CONSTRAINT pk_point_log PRIMARY KEY (point_log_id);
+
+ALTER TABLE SETTINGS
+ADD CONSTRAINT pk_settings PRIMARY KEY (setting_key);
+
+ALTER TABLE AUDIT_LOG
+ADD CONSTRAINT pk_audit_log PRIMARY KEY (audit_id);
+
+
+-- UNIQUE CONSTRAINT
+ALTER TABLE USERS
+ADD CONSTRAINT uq_users_email UNIQUE (email);
+
+
+-- FOREIGN KEY
+ALTER TABLE PLACES
+ADD CONSTRAINT fk_places_categories
+FOREIGN KEY (category_id)
+REFERENCES CATEGORIES(category_id);
+
+ALTER TABLE CHECKINS
+ADD CONSTRAINT fk_checkins_users
+FOREIGN KEY (user_id)
+REFERENCES USERS(user_id);
+
+ALTER TABLE CHECKINS
+ADD CONSTRAINT fk_checkins_places
+FOREIGN KEY (place_id)
+REFERENCES PLACES(place_id);
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT fk_reports_checkins
+FOREIGN KEY (checkin_id)
+REFERENCES CHECKINS(checkin_id);
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT fk_reports_users
+FOREIGN KEY (user_id)
+REFERENCES USERS(user_id);
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT fk_reports_places
+FOREIGN KEY (place_id)
+REFERENCES PLACES(place_id);
+
+ALTER TABLE POINT_LOG
+ADD CONSTRAINT fk_pointlog_users
+FOREIGN KEY (user_id)
+REFERENCES USERS(user_id);
+
+ALTER TABLE AUDIT_LOG
+ADD CONSTRAINT fk_audit_users
+FOREIGN KEY (user_id)
+REFERENCES USERS(user_id);
+
+
+-- CHECK CONSTRAINT
+ALTER TABLE USERS
+ADD CONSTRAINT chk_users_points
+CHECK (points >= 0);
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT chk_crowd_level
+CHECK (crowd_level IN ('SEPI', 'SEDANG', 'RAMAI'));
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT chk_socket_available
+CHECK (socket_available IN ('Y', 'N'));
+
+ALTER TABLE CONDITION_REPORTS
+ADD CONSTRAINT chk_wifi_speed
+CHECK (wifi_speed IN ('LAMBAT', 'SEDANG', 'CEPAT'));
+
+ALTER TABLE POINT_LOG
+ADD CONSTRAINT chk_points_change
+CHECK (points_change > 0);
+
+
+-- INDEX UNTUK PENCARIAN LAPORAN
+CREATE INDEX idx_reports_place_date
+ON CONDITION_REPORTS(place_id, created_at);
+
+CREATE INDEX idx_reports_user
+ON CONDITION_REPORTS(user_id);
+
+CREATE INDEX idx_checkins_user
+ON CHECKINS(user_id);
+
+CREATE INDEX idx_places_category
+ON PLACES(category_id);
+
+
+-- MEMASTIKAN SATU PENGGUNA HANYA PUNYA
+-- SATU CHECK-IN AKTIF PADA SATU WAKTU
+CREATE UNIQUE INDEX uq_active_checkin
+ON CHECKINS (
+    CASE
+        WHEN checked_out_at IS NULL THEN user_id
+        ELSE NULL
+    END
+);
